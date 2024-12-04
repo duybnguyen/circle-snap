@@ -31,6 +31,7 @@ struct GameState {
     var isInConditionPatch: Bool = false
     
     var isBarVisible: Bool = true
+    
 
 }
 

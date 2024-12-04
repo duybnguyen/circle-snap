@@ -18,6 +18,8 @@ struct GameOverView: View {
             viewModel.gameStatus = .inProgress
             viewModel.gameState.score = 0
             viewModel.gameState.animationSpeed = 4
+            viewModel.gameState.randomNodeAngle = Double.random(in: 0..<360)
+            viewModel.gameState.progress = Double.random(in: 0..<1)
         }
     }
 }

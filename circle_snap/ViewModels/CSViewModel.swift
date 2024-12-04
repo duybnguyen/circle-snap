@@ -27,6 +27,8 @@ class CSViewModel: ObservableObject {
     }
     
     func onAppear() {
+        gameState.randomNodeAngle = Double.random(in: 0..<360)
+        gameState.progress = Double.random(in: 0..<1)
         startRotation()
         startConditionCycle()
     }
