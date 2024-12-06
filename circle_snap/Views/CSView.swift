@@ -21,11 +21,18 @@ struct CSView: View {
             }
             TargetNodeView(
                 angle: viewModel.gameState.randomNodeAngle,
-                scale: viewModel.gameState.scale,
-                offset: viewModel.gameState.shakeOffset,
-                isGlowing: viewModel.gameState.isGlowing,
+                scale: viewModel.gameState.nodeScale,
+                offset: viewModel.gameState.nodeShakeOffset,
+                isGlowing: viewModel.gameState.nodeIsGlowing,
                 onTap: viewModel.handleTap
             )
+            if viewModel.gameState.isPowerUpActive {
+                PowerUpNodeView(
+                    angle: viewModel.gameState.randomPowerUpNodeAngle,
+                    scale: viewModel.gameState.powerUpScale,
+                    offset: viewModel.gameState.powerUpShakeOffset)
+
+            }
             MovingIndicatorView(progress: viewModel.gameState.progress, isBarVisible: viewModel.gameState.isBarVisible)
             
             // Uncomment for debugging

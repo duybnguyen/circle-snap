@@ -16,7 +16,7 @@ struct GameConstants {
     
     static let speedUpModifier: Double = 0.10
     
-    static let conditionEventDuration: TimeInterval = 10.0
+    static let conditionEventDuration: TimeInterval = 15.0
     static let conditionPatchSize: Double = 80.0
     
     
@@ -26,7 +26,7 @@ struct GameConstants {
     static let iceMinAdjustment = 0.3
     static let iceMaxAdjustment = 1.4
     
-    static let conditions: [ConditionType] = [.wind, .ice, .sand, .fog]
+    static let conditions: [ConditionType] = [.mud, .ice, .wind, .fog]
 }
     
 

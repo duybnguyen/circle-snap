@@ -22,8 +22,8 @@ struct ConditionView: View {
         switch weather {
         case .wind:
             return .white
-        case .sand:
-            return .green
+        case .mud:
+            return .brown
         case .ice:
             return .cyan
         case .fog:

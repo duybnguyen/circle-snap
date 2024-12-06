@@ -16,10 +16,7 @@ class CSViewModel: ObservableObject {
     
     private var weatherTimer: AnyCancellable?
         
-    
-    // Debug properties to visualize the start and end angles for the active zone
-    var debugStartAngle: Double { normalizeAngle(gameState.randomNodeAngle - angleTolerance) }
-    var debugEndAngle: Double { normalizeAngle(gameState.randomNodeAngle + angleTolerance) }
+    private var powerUpTimer: AnyCancellable?
     
     // Initializes the ViewModel and calculates angle tolerance for determining successful taps.
     init() {
@@ -82,7 +79,7 @@ class CSViewModel: ObservableObject {
             switch gameState.currentCondition {
             case .wind:
                 progressChange *= GameConstants.windSpeedMultiplier
-            case .sand:
+            case .mud:
                 progressChange *= GameConstants.sandSpeedMultiplier
             case .ice:
                 let isPositiveProgress = calculateProbability(probability: 0.8)
@@ -117,11 +114,11 @@ class CSViewModel: ObservableObject {
         gameState.progress = progress
         
         // Determine if the bar is in range (glowing)
-        let wasInRange = gameState.isGlowing
-        gameState.isGlowing = isRectangleInRange()
+        let wasInRange = gameState.nodeIsGlowing
+        gameState.nodeIsGlowing = isBarInRange(nodeAngle: gameState.randomNodeAngle)
         
         // If the bar passes through the node (was glowing but is no longer in range), handle the failure
-        if wasInRange && !gameState.isGlowing {
+        if wasInRange && !gameState.nodeIsGlowing {
             if gameState.score > 0 && !didTap {
                 handleFailedTap()
             }
@@ -131,11 +128,11 @@ class CSViewModel: ObservableObject {
 
     
     // Checks if the rotating rectangle is within the success range of the node's angle.
-    private func isRectangleInRange() -> Bool {
+    private func isBarInRange(nodeAngle: Double) -> Bool {
         let normalizedProgress = normalizeAngle(gameState.progress * 360)
-        let startAngle = debugStartAngle
-        let endAngle = debugEndAngle
-        
+        var startAngle: Double { normalizeAngle(gameState.randomNodeAngle - angleTolerance) }
+        var endAngle: Double { normalizeAngle(gameState.randomNodeAngle + angleTolerance) }
+
         // Determines if the progress angle falls within the specified tolerance range
         return startAngle < endAngle
         ? normalizedProgress >= startAngle && normalizedProgress <= endAngle
@@ -146,8 +143,8 @@ class CSViewModel: ObservableObject {
     // calls success or failure handlers based on alignment.
     func handleTap() {
         didTap = true;
-        if isRectangleInRange() {
-            handleSuccessfulTap()
+        if isBarInRange(nodeAngle: gameState.randomNodeAngle) {
+            handleSuccessfulNodeTap()
         } else {
             handleFailedTap()
         }
@@ -155,15 +152,16 @@ class CSViewModel: ObservableObject {
     
     
     // Handles a successful tap, triggering animations and updating the node position.
-    private func handleSuccessfulTap() {
+    private func handleSuccessfulNodeTap() {
         speedUpOnSuccessfulTap()
+        checkPowerUpSpawn()
         gameState.lastClickProgress = gameState.progress
         isReverse = !isReverse
         gameState.score += 1
         
         // Animations
         withAnimation(.easeIn(duration: GameConstants.scaleAnimationDuration)) {
-            gameState.scale = 0.0
+            gameState.nodeScale = 0.0
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + GameConstants.scaleAnimationDuration) {
@@ -176,7 +174,7 @@ class CSViewModel: ObservableObject {
             self.gameState.randomNodeAngle = newAngle
 
             withAnimation(.easeOut(duration: GameConstants.scaleAnimationDuration)) {
-                self.gameState.scale = 1.0
+                self.gameState.nodeScale = 1.0
             }
         }
     }
@@ -185,18 +183,47 @@ class CSViewModel: ObservableObject {
     private func handleFailedTap() {
         gameStatus = .gameOver
         withAnimation(Animation.easeInOut(duration: GameConstants.shakeDuration).repeatCount(3, autoreverses: true)) {
-            gameState.scale = 0.95
-            gameState.shakeOffset = 10
+            gameState.nodeScale = 0.95
+            gameState.nodeShakeOffset = 10
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             withAnimation {
-                self.gameState.scale = 1.0
-                self.gameState.shakeOffset = 0
+                self.gameState.nodeScale = 1.0
+                self.gameState.nodeShakeOffset = 0
             }
         }
     }
+    
+    private func handleSuccessfulPowerUpTap() {
         
+    }
+    
+    private func checkPowerUpSpawn() {
+        if gameState.isPowerUpActive {
+            return
+        } else {
+            // simulate a 10% chance
+            if Double.random(in: 0..<1) < 0.1 {
+                gameState.isPowerUpActive = true
+                gameState.randomPowerUpNodeAngle = Double.random(in: 0..<360)
+                startPowerUpTimer()
+            }
+        }
+    }
+
+    private func startPowerUpTimer() {
+        // cancel any existing power-up timer
+        powerUpTimer?.cancel()
+        
+        // start a new timer for 10 seconds
+        powerUpTimer = Timer.publish(every: 10, on: .main, in: .common)
+            .autoconnect()
+            .prefix(1) // Ensure it only fires once after 10 seconds
+            .sink { [weak self] _ in
+                self?.gameState.isPowerUpActive = false
+                self?.powerUpTimer?.cancel()            }
+    }
         
     // Normalizes an angle to fall within the 0-360° range.
     private func normalizeAngle(_ angle: Double) -> Double {
@@ -249,10 +276,11 @@ class CSViewModel: ObservableObject {
         }
     }
     
-    // Cancels the timer when the ViewModel is deinitialized.
+    // Cancels the timers when the ViewModel is deinitialized.
     deinit {
         displayLink?.invalidate()
         countdownTimer?.cancel()
         weatherTimer?.cancel()
+        powerUpTimer?.cancel()
     }
 }
