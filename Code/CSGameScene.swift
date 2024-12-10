@@ -37,6 +37,7 @@ class CSGameScene: SKScene {
     func setupScene() {
         backgroundColor = .black
         removeAllChildren()
+        setupGameBackground()
         
         switch (gameContext.currentGameStatus) {
         case .notStarted:
@@ -45,7 +46,6 @@ class CSGameScene: SKScene {
             addChild(startNode)
             
         case .inProgress:
-            setupGameBackground()
             circleTrackNode = CircleTrackNode(radius: GameConstants.circleTrackRadius,
                                                   lineWidth: GameConstants.circleTrackWidth,
                                                   color: SKColor(named: "circleTrack")!)
@@ -109,11 +109,23 @@ class CSGameScene: SKScene {
     }
     
     func setupGameBackground() {
-        let backgroundImage = SKSpriteNode(imageNamed: "gameBackground")
-        backgroundImage.position = CGPoint(x: frame.midX, y: frame.midY)
-        backgroundImage.zPosition = -1
-        backgroundImage.size = frame.size
-        addChild(backgroundImage)
+        var backgroundImageName: String?
+        
+        switch gameContext.currentGameStatus {
+        case .inProgress:
+            backgroundImageName = "gameBackground"
+        case .gameOver:
+            backgroundImageName = "gameOverBackground"
+        case .notStarted:
+            return
+        }
+        if let backgroundImageName = backgroundImageName {
+            let backgroundImage = SKSpriteNode(imageNamed: backgroundImageName)
+            backgroundImage.position = CGPoint(x: frame.midX, y: frame.midY)
+            backgroundImage.zPosition = -1
+            backgroundImage.size = frame.size
+            addChild(backgroundImage)
+        }
     }
 
     
