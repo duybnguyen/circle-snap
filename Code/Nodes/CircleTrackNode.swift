@@ -22,6 +22,10 @@ class CircleTrackNode: SKShapeNode {
         self.strokeColor = color.withAlphaComponent(0.8)
         self.lineWidth = lineWidth
         
+        let circleTrackCloud = SKSpriteNode(imageNamed: "circleTrackCloud")
+        circleTrackCloud.position = CGPoint(x: frame.midX, y: frame.midY - GameConstants.circleTrackRadius - 35)
+        circleTrackCloud.zPosition = 10
+        self.addChild(circleTrackCloud)
     }
 
     required init?(coder aDecoder: NSCoder) {

@@ -45,6 +45,7 @@ class CSGameScene: SKScene {
             addChild(startNode)
             
         case .inProgress:
+            setupGameBackground()
             circleTrackNode = CircleTrackNode(radius: GameConstants.circleTrackRadius,
                                                   lineWidth: GameConstants.circleTrackWidth,
                                                   color: SKColor(named: "circleTrack")!)
@@ -106,6 +107,15 @@ class CSGameScene: SKScene {
             }
         }
     }
+    
+    func setupGameBackground() {
+        let backgroundImage = SKSpriteNode(imageNamed: "gameBackground")
+        backgroundImage.position = CGPoint(x: frame.midX, y: frame.midY)
+        backgroundImage.zPosition = -1
+        backgroundImage.size = frame.size
+        addChild(backgroundImage)
+    }
+
     
     private func updateGameState() {
        // let cycleProgress = gameContext.progress
